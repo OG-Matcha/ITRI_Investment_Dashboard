@@ -552,7 +552,7 @@
         <!-- 右側邊欄 -->
         <div
             v-if="selectedCell"
-            class="fixed right-0 top-0 h-full w-[500px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out"
+            class="fixed right-0 top-0 h-full w-[600px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out"
             @click.stop
         >
             <div class="h-full flex flex-col">
@@ -617,17 +617,99 @@
                     </div>
                 </div>
 
+                <!-- 搜尋控制 -->
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="relative">
+                        <label
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            搜尋公司名稱
+                        </label>
+                        <div class="relative">
+                            <input
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="輸入公司名稱進行搜尋..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            />
+                            <div
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                            >
+                                <svg
+                                    class="h-5 w-5 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <button
+                                v-if="searchQuery"
+                                @click="searchQuery = ''"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            >
+                                <svg
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div
+                            v-if="searchQuery"
+                            class="mt-2 text-sm text-gray-600"
+                        >
+                            找到 {{ filteredCompanies.length }} 家公司
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 公司列表 -->
                 <div class="flex-1 overflow-y-auto p-4">
                     <div class="mb-4">
                         <h4 class="text-sm font-semibold text-gray-600 mb-2">
-                            共 {{ sortedCompanies.length }} 家公司
+                            共 {{ filteredCompanies.length }} 家公司
                         </h4>
                     </div>
 
-                    <div class="space-y-3">
+                    <div
+                        v-if="filteredCompanies.length === 0"
+                        class="text-center py-8 text-gray-500"
+                    >
+                        <svg
+                            class="mx-auto h-12 w-12 text-gray-400 mb-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                        </svg>
+                        <p v-if="searchQuery">沒有找到符合搜尋條件的公司</p>
+                        <p v-else>此象限暫無公司資料</p>
+                    </div>
+
+                    <div v-else class="space-y-3">
                         <div
-                            v-for="company in sortedCompanies"
+                            v-for="company in filteredCompanies"
                             :key="company.name"
                             class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200"
                         >
@@ -814,6 +896,9 @@ const selectedProductTypes = ref<string[]>([]);
 // 排序狀態
 const sortField = ref("name");
 const sortOrder = ref<"asc" | "desc">("asc");
+
+// 搜尋狀態
+const searchQuery = ref("");
 
 // 使用 Composables
 const {
@@ -1018,6 +1103,19 @@ const sortedCompanies = computed(() => {
         } else {
             return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
         }
+    });
+});
+
+// 搜尋過濾後的公司列表
+const filteredCompanies = computed(() => {
+    if (!searchQuery.value.trim()) {
+        return sortedCompanies.value;
+    }
+
+    const query = searchQuery.value.toLowerCase().trim();
+    return sortedCompanies.value.filter((company) => {
+        const companyName = String(company.name || "").toLowerCase();
+        return companyName.includes(query);
     });
 });
 

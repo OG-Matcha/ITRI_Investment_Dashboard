@@ -76,12 +76,6 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="axis-description">
-                            <i class="info-icon">ℹ️</i>
-                            <span
-                                >軸線說明：選擇不同的數值指標作為X軸和Y軸，系統會自動計算三分位數進行高中低分類。</span
-                            >
-                        </div>
                     </div>
                 </div>
 

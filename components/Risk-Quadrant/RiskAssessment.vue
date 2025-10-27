@@ -119,41 +119,15 @@
             </div>
         </div>
 
-        <!-- 評估說明 -->
-        <div class="mt-4 p-3 bg-blue-50 rounded-lg">
-            <div class="flex items-start space-x-2">
-                <div class="text-blue-500 mt-0.5">
-                    <svg
-                        class="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clip-rule="evenodd"
-                        ></path>
-                    </svg>
-                </div>
-                <div class="text-sm text-blue-700">
-                    <p class="font-medium">評估說明：</p>
-                    <p>
-                        調整各指標權重來改變風險和回報的計算方式。權重總和會自動正規化為
-                        100%。
-                    </p>
-                </div>
-            </div>
-        </div>
-
         <!-- 快速設定按鈕 -->
-        <div class="mt-4">
-            <h4 class="text-sm font-medium text-gray-700 mb-2">快速設定</h4>
-            <div class="flex flex-wrap gap-2">
+        <div class="mt-6">
+            <h4 class="text-lg font-medium text-gray-700 mb-4">快速設定</h4>
+            <div class="flex flex-wrap gap-3">
                 <button
                     v-for="preset in presets"
                     :key="preset.name"
                     @click="applyPreset(preset)"
-                    class="px-3 py-1 text-xs bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                    class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors font-medium"
                 >
                     {{ preset.name }}
                 </button>

@@ -2,8 +2,8 @@ import { ref, computed, watch } from 'vue'
 import type { EnergyStorageData, FilterOptions } from '~/types'
 import { parseMultiValueField } from '~/utils/dataParser'
 
-export function useFiltering(originalData: Ref<EnergyStorageData[]>) {
-  // 篩選狀態
+export function useFiltering(originalData: Ref<EnergyStorageData[]>, instanceId?: string) {
+  // 篩選狀態 - 使用實例 ID 來確保每個組件有獨立的篩選狀態
   const filters = ref<FilterOptions>({
     subIndustries: [],
     productServiceTypes: [],
@@ -194,7 +194,7 @@ export function useFiltering(originalData: Ref<EnergyStorageData[]>) {
   return {
     // 狀態
     filters: readonly(filters),
-    filteredData: readonly(filteredData),
+    filteredData,
     hasActiveFilters,
     filterSummary,
     

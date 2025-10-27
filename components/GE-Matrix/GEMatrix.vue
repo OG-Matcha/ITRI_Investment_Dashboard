@@ -910,34 +910,25 @@ const {
     reloadData,
 } = useDataProcessing();
 
-const { filteredData } = useFiltering(processedData as any);
+const { filteredData } = useFiltering(processedData as any, "ge-matrix");
 
 // 計算篩選選項
 const subIndustryOptions = computed(() => {
     const industries = new Set<string>();
-    console.log("計算子產業選項，資料數量:", processedData.value.length);
-    console.log("processedData 狀態:", {
-        loading: loading.value,
-        error: error.value,
-    });
 
     if (processedData.value.length === 0) {
-        console.log("沒有資料，返回空選項");
         return [];
     }
 
     processedData.value.forEach((item) => {
         if (item.SubIndustry) {
-            console.log("公司:", item.name, "子產業:", item.SubIndustry);
             item.SubIndustry.split(",").forEach((industry) => {
                 const trimmed = industry.trim();
                 if (trimmed) industries.add(trimmed);
             });
         }
     });
-    const result = Array.from(industries).sort();
-    console.log("子產業選項:", result);
-    return result;
+    return Array.from(industries).sort();
 });
 
 const productTypeOptions = computed(() => {
@@ -955,37 +946,23 @@ const productTypeOptions = computed(() => {
 
 // 計算篩選後的資料
 const filteredMatrixData = computed(() => {
-    console.log("filteredMatrixData 計算中:", {
-        loading: loading.value,
-        processedDataType: typeof processedData.value,
-        processedDataIsArray: Array.isArray(processedData.value),
-        processedDataLength: processedData.value?.length,
-        processedDataValue: processedData.value,
-    });
-
     // 如果還在載入中或沒有資料，返回空陣列
     if (
         loading.value ||
         !processedData.value ||
         processedData.value.length === 0
     ) {
-        console.log("資料載入中或無資料，返回空陣列");
         return [];
     }
 
     // 確保 processedData.value 是陣列
     let data = Array.isArray(processedData.value) ? processedData.value : [];
 
-    console.log("篩選前資料數量:", data.length);
-    console.log("選中的子產業:", selectedSubIndustries.value);
-    console.log("選中的產品類型:", selectedProductTypes.value);
-
     // 如果沒有選擇任何篩選條件，返回所有資料
     if (
         selectedSubIndustries.value.length === 0 &&
         selectedProductTypes.value.length === 0
     ) {
-        console.log("沒有篩選條件，返回所有資料");
         return data;
     }
 
@@ -1002,12 +979,10 @@ const filteredMatrixData = computed(() => {
             );
             return hasMatch;
         });
-        console.log("子產業篩選後:", beforeCount, "->", data.length);
     }
 
     // 應用產品/服務類型篩選
     if (selectedProductTypes.value.length > 0) {
-        const beforeCount = data.length;
         data = data.filter((item) => {
             if (!item.ProductServiceType) return false;
             const types = item.ProductServiceType.split(",").map((t: string) =>
@@ -1018,25 +993,14 @@ const filteredMatrixData = computed(() => {
             );
             return hasMatch;
         });
-        console.log("產品類型篩選後:", beforeCount, "->", data.length);
     }
 
-    console.log("最終篩選結果:", data.length);
     return data;
 });
 
 // 計算屬性
 const matrixData = computed(() => {
-    console.log("計算 matrixData:", {
-        filteredDataLength: filteredMatrixData.value.length,
-        xAxis: xAxis.value,
-        yAxis: yAxis.value,
-        selectedSubIndustries: selectedSubIndustries.value,
-        selectedProductTypes: selectedProductTypes.value,
-    });
-
     if (filteredMatrixData.value.length === 0) {
-        console.log("沒有篩選資料，返回空矩陣");
         return {
             highHigh: [],
             highMedium: [],
@@ -1058,7 +1022,6 @@ const matrixData = computed(() => {
         yAxis.value as keyof EnergyStorageData
     );
 
-    console.log("GE 矩陣計算結果:", result);
     return result;
 });
 
@@ -1122,15 +1085,9 @@ const filteredCompanies = computed(() => {
 // 方法
 const handleAxisChange = () => {
     // 軸線變更時會自動觸發 matrixData 重新計算
-    console.log("軸線變更:", { xAxis: xAxis.value, yAxis: yAxis.value });
 };
 
 const handleFilterChange = () => {
-    console.log("篩選變更:", {
-        subIndustries: selectedSubIndustries.value,
-        productTypes: selectedProductTypes.value,
-    });
-
     // 觸發篩選資料重新計算
     // 這裡會自動觸發 matrixData 重新計算
 };
@@ -1221,10 +1178,6 @@ const getAxisStandards = (axis: string) => {
 watch(
     [xAxis, yAxis],
     () => {
-        console.log("軸線監聽器觸發:", {
-            xAxis: xAxis.value,
-            yAxis: yAxis.value,
-        });
         handleAxisChange();
     },
     { deep: true }
@@ -1236,24 +1189,12 @@ const convertToCamelCase = (str: string): string => {
 };
 
 const handleCellClick = (cellType: string) => {
-    console.log("點擊格子:", cellType);
-    console.log("matrixData.value:", matrixData.value);
-    console.log("filteredMatrixData.value:", filteredMatrixData.value);
-    console.log("processedData.value:", processedData.value);
-
     // 將 cellType 從 kebab-case 轉換為 camelCase
     const camelCaseCellType = convertToCamelCase(cellType);
-    console.log("轉換後的 cellType:", camelCaseCellType);
 
     // 確保從正確的資料源獲取公司資料
     const matrixResult = matrixData.value as any;
     const companies = matrixResult[camelCaseCellType] || [];
-
-    console.log("matrixResult:", matrixResult);
-    console.log("原始 cellType:", cellType);
-    console.log("駝峰 cellType:", camelCaseCellType);
-    console.log("獲取到的公司資料:", companies);
-    console.log("公司資料長度:", companies.length);
 
     const cellLabels: Record<string, string> = {
         highHigh: "高-高",

@@ -49,32 +49,6 @@ export function calculateGEMatrix(
   const xThresholds = calculateAxisThresholds(xValues, xAxis as string)
   const yThresholds = calculateAxisThresholds(yValues, yAxis as string)
   
-  console.log('GE 矩陣計算詳情:', {
-    xAxis,
-    yAxis,
-    dataLength: data.length,
-    xValuesLength: xValues.length,
-    yValuesLength: yValues.length,
-    xThresholds,
-    yThresholds
-  })
-  
-  // 檢查資料範圍
-  if (xValues.length > 0) {
-    console.log('X 軸資料範圍:', {
-      min: Math.min(...xValues),
-      max: Math.max(...xValues),
-      avg: xValues.reduce((a, b) => a + b, 0) / xValues.length
-    })
-  }
-  
-  if (yValues.length > 0) {
-    console.log('Y 軸資料範圍:', {
-      min: Math.min(...yValues),
-      max: Math.max(...yValues),
-      avg: yValues.reduce((a, b) => a + b, 0) / yValues.length
-    })
-  }
   
   const result: GEMatrixResult = {
     highHigh: [],
@@ -99,19 +73,6 @@ export function calculateGEMatrix(
     const key = `${yClass}${xClass.charAt(0).toUpperCase() + xClass.slice(1)}` as keyof GEMatrixResult
     result[key].push(item)
     
-    console.log(`公司 ${item.name}: x=${xValue}(${xClass}), y=${yValue}(${yClass}) -> ${key}`)
-  })
-  
-  console.log('GE 矩陣分類結果:', {
-    highHigh: result.highHigh.length,
-    highMedium: result.highMedium.length,
-    highLow: result.highLow.length,
-    mediumHigh: result.mediumHigh.length,
-    mediumMedium: result.mediumMedium.length,
-    mediumLow: result.mediumLow.length,
-    lowHigh: result.lowHigh.length,
-    lowMedium: result.lowMedium.length,
-    lowLow: result.lowLow.length
   })
   
   return {
@@ -124,9 +85,15 @@ export function calculateGEMatrix(
 /**
  * 計算風險象限分類
  * @param data 資料陣列
+ * @param riskWeights 風險權重
+ * @param returnWeights 回報權重
  * @returns 風險象限分類結果
  */
-export function calculateRiskQuadrant(data: EnergyStorageData[]): RiskQuadrantResult {
+export function calculateRiskQuadrant(
+  data: EnergyStorageData[], 
+  riskWeights?: { fundingRounds: number; companyAge: number; cbRank: number },
+  returnWeights?: { totalFunding: number; valuation: number }
+): RiskQuadrantResult {
   const result: RiskQuadrantResult = {
     highRiskHighReturn: [],
     highRiskLowReturn: [],
@@ -134,12 +101,22 @@ export function calculateRiskQuadrant(data: EnergyStorageData[]): RiskQuadrantRe
     lowRiskLowReturn: []
   }
   
-  data.forEach(item => {
-    const riskScore = calculateRiskScore(item)
-    const returnScore = calculateReturnScore(item)
+  // 計算所有風險和回報評分
+  const riskScores = data.map(item => calculateRiskScore(item, riskWeights))
+  const returnScores = data.map(item => calculateReturnScore(item, returnWeights))
+  
+  // 使用分位數來動態設定閾值，確保資料合理分佈
+  const riskThresholds = calculatePercentiles(riskScores, [25, 75]) // 25% 和 75% 分位數
+  const returnThresholds = calculatePercentiles(returnScores, [25, 75])
+  
+  
+  data.forEach((item, index) => {
+    const riskScore = riskScores[index]
+    const returnScore = returnScores[index]
     
-    const isHighRisk = riskScore >= 50
-    const isHighReturn = returnScore >= 50
+    // 使用動態閾值進行分類
+    const isHighRisk = riskScore >= riskThresholds[1] // 75% 分位數以上為高風險
+    const isHighReturn = returnScore >= returnThresholds[1] // 75% 分位數以上為高回報
     
     if (isHighRisk && isHighReturn) {
       result.highRiskHighReturn.push(item)
@@ -152,7 +129,27 @@ export function calculateRiskQuadrant(data: EnergyStorageData[]): RiskQuadrantRe
     }
   })
   
+  
   return result
+}
+
+// 計算分位數的輔助函數
+function calculatePercentiles(scores: number[], percentiles: number[]): number[] {
+  const sorted = [...scores].sort((a, b) => a - b)
+  return percentiles.map(p => {
+    // 使用更準確的分位數計算方法
+    const index = (p / 100) * (sorted.length - 1)
+    const lower = Math.floor(index)
+    const upper = Math.ceil(index)
+    const weight = index - lower
+    
+    if (lower === upper) {
+      return sorted[lower]
+    }
+    
+    // 線性插值
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight
+  })
 }
 
 /**

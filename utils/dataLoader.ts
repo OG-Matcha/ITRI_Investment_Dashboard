@@ -68,7 +68,6 @@ function parseCSVLine(line: string): string[] {
  * @returns Promise<EnergyStorageData[]>
  */
 export async function loadDataFromFile(filePath: string): Promise<EnergyStorageData[]> {
-  console.log(`嘗試載入檔案: ${filePath}`)
   try {
     // 確保路徑是有效的 URL
     let url: string
@@ -78,21 +77,17 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
       // 絕對路徑，需要加上基礎 URL
       const baseUrl = typeof window !== 'undefined' 
         ? window.location.origin 
-        : 'http://localhost:3000'
+        : 'http://localhost:3002'
       url = `${baseUrl}${filePath}`
     } else {
       // 相對路徑，直接使用
       url = filePath
     }
     
-    console.log(`解析後的 URL: ${url}`)
-    
     // 使用 $fetch 來載入檔案
     const csvContent = await $fetch<string>(url)
     
-    console.log(`檔案載入成功 [${filePath}], 開始解析 CSV...`)
     const data = loadCSVData(csvContent)
-    console.log(`CSV 解析完成 [${filePath}], 記錄數: ${data.length}`)
     return data
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
@@ -106,29 +101,17 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
  * @returns Promise<EnergyStorageData[]>
  */
 export async function loadDefaultData(): Promise<EnergyStorageData[]> {
-  console.log('🚀 開始載入預設資料...');
-  const startTime = Date.now();
-  
   try {
     // 在 Nuxt 3 中，$fetch 會自動處理 public 目錄的檔案路徑
     // 直接使用相對路徑即可，$fetch 會自動解析為正確的 URL
     const filePath = '/Energy_Storage_standardized.csv';
-    console.log(`📁 載入檔案: ${filePath}`);
     
     const data = await loadDataFromFile(filePath);
     
-    const loadTime = Date.now() - startTime;
-    console.log(`🎉 預設資料載入成功！`);
-    console.log(`📊 使用路徑: ${filePath}`);
-    console.log(`📈 記錄數: ${data.length}`);
-    console.log(`⏱️ 載入時間: ${loadTime}ms`);
-    
     return data;
   } catch (error) {
-    const loadTime = Date.now() - startTime;
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('💥 預設資料載入失敗！');
-    console.error('⏱️ 失敗時間:', loadTime + 'ms');
     console.error('❌ 錯誤詳情:', errorMsg);
     throw new Error(`預設資料載入失敗: ${errorMsg}`);
   }

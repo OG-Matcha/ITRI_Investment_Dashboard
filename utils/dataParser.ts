@@ -168,25 +168,37 @@ export function classifyValueByAxis(
 /**
  * 計算風險評分
  * @param data 投資資料
+ * @param weights 風險權重
  * @returns 風險評分 (0-100)
  */
-export function calculateRiskScore(data: EnergyStorageData): number {
+export function calculateRiskScore(
+  data: EnergyStorageData, 
+  weights?: { fundingRounds: number; companyAge: number; cbRank: number }
+): number {
+  // 預設權重
+  const defaultWeights = { fundingRounds: 0.4, companyAge: 0.3, cbRank: 0.3 }
+  const w = weights || defaultWeights
+  
   let riskScore = 0
   
   // 投資輪次越多風險越高
   if (data.num_funding_rounds > 0) {
-    riskScore += Math.min(data.num_funding_rounds * 10, 40)
+    const roundsScore = Math.min(data.num_funding_rounds * 10, 40)
+    riskScore += roundsScore * w.fundingRounds
   }
   
   // 公司年齡越短風險越高
   const currentYear = new Date().getFullYear()
   const companyAge = currentYear - data.founded_year
-  if (companyAge < 5) riskScore += 30
-  else if (companyAge < 10) riskScore += 15
+  let ageScore = 0
+  if (companyAge < 5) ageScore = 30
+  else if (companyAge < 10) ageScore = 15
+  riskScore += ageScore * w.companyAge
   
   // CB Rank 越高風險越低
   if (data.rank > 0) {
-    riskScore += Math.max(0, 30 - (data.rank / 10000))
+    const rankScore = Math.max(0, 30 - (data.rank / 10000))
+    riskScore += rankScore * w.cbRank
   }
   
   return Math.min(Math.max(riskScore, 0), 100)
@@ -195,19 +207,29 @@ export function calculateRiskScore(data: EnergyStorageData): number {
 /**
  * 計算回報評分
  * @param data 投資資料
+ * @param weights 回報權重
  * @returns 回報評分 (0-100)
  */
-export function calculateReturnScore(data: EnergyStorageData): number {
+export function calculateReturnScore(
+  data: EnergyStorageData, 
+  weights?: { totalFunding: number; valuation: number }
+): number {
+  // 預設權重
+  const defaultWeights = { totalFunding: 0.5, valuation: 0.5 }
+  const w = weights || defaultWeights
+  
   let returnScore = 0
   
   // 募資金額越高回報越高
   if (data.total_funding_usd > 0) {
-    returnScore += Math.min(Math.log10(data.total_funding_usd) * 15, 50)
+    const fundingScore = Math.min(Math.log10(data.total_funding_usd) * 15, 50)
+    returnScore += fundingScore * w.totalFunding
   }
   
   // 投後估值越高回報越高
   if (data.post_money_valuation_usd && data.post_money_valuation_usd > 0) {
-    returnScore += Math.min(Math.log10(data.post_money_valuation_usd) * 15, 50)
+    const valuationScore = Math.min(Math.log10(data.post_money_valuation_usd) * 15, 50)
+    returnScore += valuationScore * w.valuation
   }
   
   return Math.min(Math.max(returnScore, 0), 100)

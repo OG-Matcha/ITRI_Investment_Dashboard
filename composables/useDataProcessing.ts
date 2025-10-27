@@ -20,21 +20,15 @@ export function useDataProcessing() {
 
   // 載入資料
   const loadData = async () => {
-    console.log('useDataProcessing: 開始載入資料...');
     loading.value = true
     error.value = null
     
     try {
-      console.log('useDataProcessing: 調用 dataCache.load...');
       const data = await dataCache.load('energy-storage', loadDefaultData)
-      console.log('useDataProcessing: 資料載入成功，記錄數:', data.length);
-      console.log('useDataProcessing: 前3筆資料:', data.slice(0, 3));
       
       rawData.value = data
       processedData.value = data
       statistics.value = calculateStatistics(data)
-      
-      console.log('useDataProcessing: 統計資料:', statistics.value);
     } catch (err) {
       console.error('useDataProcessing: 資料載入錯誤:', err);
       error.value = err instanceof Error ? err.message : '載入資料失敗'
@@ -59,7 +53,7 @@ export function useDataProcessing() {
       const validation = validateData(cleaned)
       
       if (!validation.isValid) {
-        console.warn('資料驗證失敗:', validation.errors, cleaned)
+        // 資料驗證失敗，但繼續處理
       }
       
       return cleaned

@@ -24,13 +24,19 @@ export function useDataProcessing() {
     error.value = null
     
     try {
+      console.log('🔍 useDataProcessing - 開始載入資料')
       const data = await dataCache.load('energy-storage', loadDefaultData)
+      console.log('🔍 useDataProcessing - 載入的資料:', data.length, '筆')
+      console.log('🔍 useDataProcessing - 前3筆資料:', data.slice(0, 3))
       
       rawData.value = data
       processedData.value = data
       statistics.value = calculateStatistics(data)
+      
+      console.log('✅ useDataProcessing - 資料載入成功:', data.length, '筆')
+      console.log('✅ useDataProcessing - 統計資料:', statistics.value)
     } catch (err) {
-      console.error('useDataProcessing: 資料載入錯誤:', err);
+      console.error('❌ useDataProcessing: 資料載入錯誤:', err);
       error.value = err instanceof Error ? err.message : '載入資料失敗'
     } finally {
       loading.value = false

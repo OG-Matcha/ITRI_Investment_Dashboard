@@ -69,7 +69,14 @@ export function useFiltering(originalData: Ref<EnergyStorageData[]>, instanceId?
 
   // 更新篩選後的資料
   const updateFilteredData = () => {
-    filteredData.value = applyFilters(originalData.value, filters.value)
+    console.log('🔍 useFiltering - 更新篩選資料')
+    console.log('🔍 useFiltering - 原始資料長度:', originalData.value.length)
+    console.log('🔍 useFiltering - 篩選條件:', filters.value)
+    
+    const filtered = applyFilters(originalData.value, filters.value)
+    filteredData.value = filtered
+    
+    console.log('✅ useFiltering - 篩選後資料長度:', filtered.length)
   }
 
   // 設定篩選條件

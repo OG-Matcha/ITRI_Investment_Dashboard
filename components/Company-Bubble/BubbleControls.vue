@@ -125,46 +125,6 @@
                 </button>
             </div>
         </div>
-
-        <!-- 圖表設定 -->
-        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                    >氣泡透明度</label
-                >
-                <input
-                    v-model.number="opacity"
-                    @input="handleOpacityChange"
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div class="text-xs text-gray-500 mt-1">
-                    {{ Math.round(opacity * 100) }}%
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                    >氣泡邊框</label
-                >
-                <div class="flex space-x-2">
-                    <button
-                        @click="showBorder = !showBorder"
-                        :class="
-                            showBorder
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700'
-                        "
-                        class="px-3 py-1 text-xs rounded transition-colors"
-                    >
-                        {{ showBorder ? "顯示" : "隱藏" }}
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -188,16 +148,12 @@ const emit = defineEmits<{
     "update:yAxis": [value: string];
     "update:bubbleSize": [value: string];
     update: [xAxis: string, yAxis: string, bubbleSize: string];
-    "opacity-change": [value: number];
-    "border-change": [value: boolean];
 }>();
 
 // 響應式狀態
 const localXAxis = ref(props.xAxis);
 const localYAxis = ref(props.yAxis);
 const localBubbleSize = ref(props.bubbleSize);
-const opacity = ref(0.7);
-const showBorder = ref(true);
 
 // 預設設定
 const presets = [
@@ -271,10 +227,6 @@ const handleBubbleSizeChange = () => {
     emit("update", localXAxis.value, localYAxis.value, localBubbleSize.value);
 };
 
-const handleOpacityChange = () => {
-    emit("opacity-change", opacity.value);
-};
-
 const applyPreset = (preset: {
     xAxis: string;
     yAxis: string;
@@ -311,10 +263,6 @@ watch(
         localBubbleSize.value = newValue;
     }
 );
-
-watch(showBorder, (newValue) => {
-    emit("border-change", newValue);
-});
 </script>
 
 <style scoped>
@@ -324,26 +272,5 @@ watch(showBorder, (newValue) => {
 
 select:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    appearance: none;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #3b82f6;
-    cursor: pointer;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-input[type="range"]::-moz-range-thumb {
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    background: #3b82f6;
-    cursor: pointer;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>

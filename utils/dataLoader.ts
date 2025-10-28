@@ -75,9 +75,14 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
       url = filePath
     } else if (filePath.startsWith('/')) {
       // 絕對路徑，需要加上基礎 URL
-      const baseUrl = typeof window !== 'undefined' 
-        ? window.location.origin 
-        : 'http://localhost:3002'
+      let baseUrl: string
+      if (typeof window !== 'undefined') {
+        // 客戶端：使用當前頁面的 origin（自動適應任何端口和域名）
+        baseUrl = window.location.origin
+      } else {
+        // 服務端：使用環境變量，如果沒有則使用默認值
+        baseUrl = process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      }
       url = `${baseUrl}${filePath}`
     } else {
       // 相對路徑，直接使用

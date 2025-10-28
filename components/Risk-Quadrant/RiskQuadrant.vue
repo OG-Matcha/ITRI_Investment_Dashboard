@@ -453,6 +453,8 @@
                                 <option value="rank">CB Rank 排名</option>
                                 <option value="founded_year">成立年份</option>
                                 <option value="funding_year">募資年份</option>
+                                <option value="risk_score">風險評分</option>
+                                <option value="return_score">回報評分</option>
                             </select>
                         </div>
                         <div>
@@ -928,8 +930,21 @@ const sortedCompanies = computed(() => {
     const companies = [...selectedQuadrant.value.companies];
 
     return companies.sort((a, b) => {
-        let aValue: any = a[sortField.value as keyof EnergyStorageData];
-        let bValue: any = b[sortField.value as keyof EnergyStorageData];
+        let aValue: any;
+        let bValue: any;
+
+        // 處理評分排序
+        if (sortField.value === "risk_score") {
+            aValue = calculateRiskScore(a, riskWeights.value);
+            bValue = calculateRiskScore(b, riskWeights.value);
+        } else if (sortField.value === "return_score") {
+            aValue = calculateReturnScore(a, returnWeights.value);
+            bValue = calculateReturnScore(b, returnWeights.value);
+        } else {
+            // 處理其他欄位
+            aValue = a[sortField.value as keyof EnergyStorageData];
+            bValue = b[sortField.value as keyof EnergyStorageData];
+        }
 
         // 處理數值欄位
         if (sortField.value !== "name") {
@@ -1076,11 +1091,11 @@ const getHighReturnPercentage = (): number => {
 };
 
 const getRiskScore = (company: EnergyStorageData): number => {
-    return Math.round(calculateRiskScore(company));
+    return Math.round(calculateRiskScore(company, riskWeights.value));
 };
 
 const getReturnScore = (company: EnergyStorageData): number => {
-    return Math.round(calculateReturnScore(company));
+    return Math.round(calculateReturnScore(company, returnWeights.value));
 };
 
 // 生命週期

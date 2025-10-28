@@ -2,6 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  
+  // 環境變量配置（為未來部署預留）
+  runtimeConfig: {
+    public: {
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL
+    }
+  },
   css: ['~/assets/css/main.css'],
   postcss: {
     plugins: {

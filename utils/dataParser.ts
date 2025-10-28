@@ -220,16 +220,27 @@ export function calculateReturnScore(
   
   let returnScore = 0
   
-  // 募資金額越高回報越高
+  // 募資金額越高回報越高 - 使用標準化方法
   if (data.total_funding_usd > 0) {
-    const fundingScore = Math.min(Math.log10(data.total_funding_usd) * 15, 50)
+    // 使用對數標準化，但調整係數以覆蓋更廣範圍
+    const fundingLog = Math.log10(data.total_funding_usd)
+    // 調整係數，使評分能覆蓋 0-100 範圍
+    const fundingScore = Math.min(Math.max(fundingLog * 20, 0), 100)
     returnScore += fundingScore * w.totalFunding
   }
   
-  // 投後估值越高回報越高
+  // 投後估值越高回報越高 - 使用標準化方法
   if (data.post_money_valuation_usd && data.post_money_valuation_usd > 0) {
-    const valuationScore = Math.min(Math.log10(data.post_money_valuation_usd) * 15, 50)
+    // 使用對數標準化，但調整係數以覆蓋更廣範圍
+    const valuationLog = Math.log10(data.post_money_valuation_usd)
+    // 調整係數，使評分能覆蓋 0-100 範圍
+    const valuationScore = Math.min(Math.max(valuationLog * 20, 0), 100)
     returnScore += valuationScore * w.valuation
+  }
+  
+  // 如果沒有募資金額和估值資料，給予基礎評分
+  if (data.total_funding_usd <= 0 && (!data.post_money_valuation_usd || data.post_money_valuation_usd <= 0)) {
+    returnScore = 10 // 給予最低基礎評分
   }
   
   return Math.min(Math.max(returnScore, 0), 100)

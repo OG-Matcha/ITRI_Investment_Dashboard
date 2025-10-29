@@ -83,11 +83,23 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
         // 服務端：使用環境變量，如果沒有則使用默認值
         baseUrl = process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'
       }
+      
+      // 在 GitHub Pages 部署時，需要考慮 baseURL
+      const config = useRuntimeConfig()
+      const appBaseURL = config.app?.baseURL || '/'
+      
+      // 如果 baseURL 不是 '/'，需要調整路徑
+      if (appBaseURL !== '/' && !filePath.startsWith(appBaseURL)) {
+        filePath = `${appBaseURL}${filePath.startsWith('/') ? filePath.slice(1) : filePath}`
+      }
+      
       url = `${baseUrl}${filePath}`
     } else {
       // 相對路徑，直接使用
       url = filePath
     }
+    
+    console.log('🔍 嘗試載入資料從:', url)
     
     // 使用 $fetch 來載入檔案
     const csvContent = await $fetch<string>(url)
@@ -107,13 +119,21 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
  */
 export async function loadDefaultData(): Promise<EnergyStorageData[]> {
   try {
-    // 在 Nuxt 3 中，$fetch 會自動處理 public 目錄的檔案路徑
-    // 直接使用相對路徑即可，$fetch 會自動解析為正確的 URL
-    const filePath = '/Energy_Storage_standardized.csv';
+    // 在 GitHub Pages 部署時，需要考慮 baseURL
+    // 先嘗試從 public 目錄載入，如果失敗則嘗試從 assets 目錄載入
+    let filePath = '/Energy_Storage_standardized.csv';
     
-    const data = await loadDataFromFile(filePath);
-    
-    return data;
+    try {
+      const data = await loadDataFromFile(filePath);
+      return data;
+    } catch (firstError) {
+      console.warn('⚠️ 從 public 目錄載入失敗，嘗試從 assets 目錄載入:', firstError);
+      
+      // 嘗試從 assets 目錄載入
+      filePath = '/assets/data/Energy_Storage_standardized.csv';
+      const data = await loadDataFromFile(filePath);
+      return data;
+    }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('💥 預設資料載入失敗！');

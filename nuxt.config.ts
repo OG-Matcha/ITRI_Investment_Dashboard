@@ -3,7 +3,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   
-  // 環境變量配置（為未來部署預留）
+  // GitHub Pages 特定配置
+  ssr: false,
+  nitro: {
+    preset: 'github-pages'
+  },
+  
+  // 環境變量配置
   runtimeConfig: {
     public: {
       baseUrl: process.env.NUXT_PUBLIC_BASE_URL
@@ -25,6 +31,7 @@ export default defineNuxtConfig({
     }
   },
   app: {
+    baseURL: process.env.NUXT_APP_BASE_URL || '/',
     head: {
       script: [
         {

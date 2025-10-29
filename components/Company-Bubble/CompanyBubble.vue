@@ -578,18 +578,13 @@ const filteredBubbleData = computed(() => {
 
 // 計算屬性
 const chartData = computed((): ChartDataPoint[] => {
-    console.log("🔍 CompanyBubble - 開始計算 chartData");
-    console.log("🔍 filteredBubbleData 長度:", filteredBubbleData.value.length);
-    console.log("🔍 filteredData 長度:", filteredData.value.length);
-    console.log("🔍 processedData 長度:", processedData.value.length);
-    console.log("🔍 軸線設定:", {
+    const config = {
         xAxis: xAxis.value,
         yAxis: yAxis.value,
         bubbleSize: bubbleSize.value,
-    });
+    };
 
     if (filteredBubbleData.value.length === 0) {
-        console.log("❌ CompanyBubble - 沒有過濾後的資料");
         return [];
     }
 
@@ -600,11 +595,9 @@ const chartData = computed((): ChartDataPoint[] => {
         bubbleSize.value as keyof EnergyStorageData
     );
 
-    console.log("✅ CompanyBubble - 轉換後的圖表資料:", result);
-    console.log(
-        "✅ 有效資料點數量:",
-        result.filter((item) => item.x > 0 && item.y > 0).length
-    );
+    const validDataCount = result.filter(
+        (item) => item.x > 0 && item.y > 0
+    ).length;
 
     return result;
 });

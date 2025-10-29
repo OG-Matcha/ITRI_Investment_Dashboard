@@ -167,7 +167,6 @@ export function useChartConfig() {
   // 監聽配置變化
   watch(chartConfigs, (newConfigs) => {
     // 可以在這裡添加配置變化的處理邏輯
-    console.log('圖表配置已更新:', newConfigs)
   }, { deep: true })
 
   return {

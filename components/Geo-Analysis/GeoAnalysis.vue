@@ -231,9 +231,6 @@ const hasActiveFilters = computed(() => {
 
 // 地圖數據
 const mapData = computed(() => {
-    console.log("GeoAnalysis - 開始計算 mapData");
-    console.log("GeoAnalysis - filteredData 長度:", filteredData.value.length);
-
     // 定義所有需要顯示的國家列表（基於世界地圖的國家）
     const allCountries = [
         "United States",
@@ -398,7 +395,7 @@ const mapData = computed(() => {
         // 調試：檢查數據結構
         if (Math.random() < 0.05) {
             // 顯示5%的調試信息
-            console.log("公司數據結構:", {
+            const debugInfo = {
                 company: company,
                 country: company.country,
                 country_name: company.country_name,
@@ -406,7 +403,7 @@ const mapData = computed(() => {
                 location: company.location,
                 headquarters: company.headquarters,
                 allKeys: Object.keys(company),
-            });
+            };
         }
 
         // 嘗試多個可能的國家字段
@@ -425,11 +422,11 @@ const mapData = computed(() => {
                 countryName.toLowerCase().includes("america") ||
                 countryName.toLowerCase().includes("us"))
         ) {
-            console.log("美國相關公司:", {
+            const debugInfo = {
                 originalName: countryName,
                 companyName: company.company_name,
                 value: company.total_funding_usd || 0,
-            });
+            };
         }
 
         // 如果國家在列表中，更新數據
@@ -444,7 +441,6 @@ const mapData = computed(() => {
             );
         } else if (countryName) {
             // 如果國家不在預定義列表中，創建新的國家條目
-            console.log("未知國家，創建新條目:", countryName);
             countryMap.set(countryName, {
                 name: countryName,
                 companyCount: 1,
@@ -497,13 +493,11 @@ const mapData = computed(() => {
     const result = Array.from(countryMap.values()).sort(
         (a, b) => b.companyCount - a.companyCount
     );
-    console.log("GeoAnalysis - mapData 計算完成:", result.length, "個國家");
     return result;
 });
 
 // 方法
 const handleControlChange = (field: string, value: any) => {
-    console.log("控制變更:", { [field]: value });
     if (field === "dataField") {
         dataField.value = value;
     }
@@ -586,25 +580,19 @@ const formatValue = (value: number, field: string): string => {
 watch(
     [processedData, filteredData],
     () => {
-        console.log(
-            "GeoAnalysis - processedData 變化:",
-            processedData.value.length
-        );
-        console.log(
-            "GeoAnalysis - filteredData 變化:",
-            filteredData.value.length
-        );
+        const dataInfo = {
+            "processedData 變化:": processedData.value.length,
+            "filteredData 變化:": filteredData.value.length,
+        };
     },
     { deep: true }
 );
 
 onMounted(() => {
-    console.log("GeoAnalysis - 組件掛載完成");
     console.log(
         "GeoAnalysis - processedData 長度:",
         processedData.value.length
     );
-    console.log("GeoAnalysis - filteredData 長度:", filteredData.value.length);
 });
 </script>
 

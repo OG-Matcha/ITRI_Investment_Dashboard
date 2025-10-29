@@ -105,15 +105,15 @@ const initMap = async () => {
         polygonSeries.set("heatRules", []);
 
         // 驗證 polygonSeries 創建成功
-        console.log("polygonSeries 創建成功:", {
+        const seriesInfo = {
             seriesType: polygonSeries.constructor.name,
             hasGeoJSON: !!polygonSeries.get("geoJSON"),
             valueField: polygonSeries.get("valueField"),
             interactive: polygonSeries.get("interactive"),
-        });
+        };
 
         // 驗證地圖配置 - 參考官方 demo
-        console.log("地圖配置設定:", {
+        const chartConfig = {
             projection: chart.get("projection")?.constructor?.name || "unknown",
             panX: chart.get("panX"),
             panY: chart.get("panY"),
@@ -121,7 +121,7 @@ const initMap = async () => {
             wheelY: chart.get("wheelY"),
             wheelZ: chart.get("wheelZ"),
             // 官方 demo 使用預設值，所以這些可能為 undefined
-        });
+        };
 
         // 設定多邊形模板
         const polygonTemplate = polygonSeries.mapPolygons.template;
@@ -218,11 +218,7 @@ const initMap = async () => {
                 centerY: am5.p50,
             })
         );
-
-        console.log("地圖初始化完成");
-    } catch (error) {
-        console.error("地圖初始化失敗:", error);
-    }
+    } catch (error) {}
 };
 
 // 更新地圖數據
@@ -240,11 +236,11 @@ const updateMapData = () => {
 
             // 調試：檢查國家名稱映射
             if (countryCode === country.name) {
-                console.log("國家名稱映射失敗:", {
+                const debugInfo = {
                     originalName: country.name,
                     mappedCode: countryCode,
                     value: value,
-                });
+                };
             }
 
             return {
@@ -262,7 +258,7 @@ const updateMapData = () => {
     const maxValue = values.length > 0 ? Math.max(...values) : 1;
 
     // 調試：檢查實際的數據範圍
-    console.log("數據範圍調試:", {
+    const dataRangeInfo = {
         totalCountries: data.length,
         allValues: data.map((d) => ({ name: d.name, value: d.value })),
         minValue,
@@ -275,13 +271,13 @@ const updateMapData = () => {
             .sort((a, b) => b.value - a.value)
             .slice(0, 5)
             .map((d) => ({ name: d.name, value: d.value })),
-    });
+    };
 
     // 更新組件級別的變數
     currentMinValue = minValue;
     currentMaxValue = maxValue;
 
-    console.log("數據範圍分析:", {
+    const dataSummary = {
         totalCountries: data.length,
         countriesWithData: values.length,
         minValue,
@@ -295,7 +291,7 @@ const updateMapData = () => {
             .slice(0, 5)
             .map((d) => ({ name: d.name, value: d.value })),
         usaData: data.find((d) => d.name === "United States" || d.id === "US"),
-    });
+    };
 
     // 設定數據
     polygonSeries.data.setAll(data);
@@ -320,7 +316,7 @@ const updateMapData = () => {
         const maxValueCountry = data.find((d) => d.value === maxValue);
         const minValueCountry = data.find((d) => d.value === minValue);
 
-        console.log("使用官方 demo heatRules 設定顏色映射:", {
+        const colorMappingInfo = {
             minValue,
             maxValue,
             colorScheme,
@@ -343,21 +339,17 @@ const updateMapData = () => {
                       shouldBeLightest: true,
                   }
                 : null,
-        });
+        };
     } else {
         // 如果沒有數據差異，設定統一顏色
         polygonSeries.mapPolygons.template.set(
             "fill",
             am5.color(colorScheme.low)
         );
-        console.log("設定統一顏色:", colorScheme.low);
     }
 
     // 重要：確保沒有數據的國家顯示為最淺色
-    console.log(
-        "檢查無數據國家:",
-        data.filter((d) => !d.hasData).map((d) => d.name)
-    );
+    const noDataCountries = data.filter((d) => !d.hasData).map((d) => d.name);
 
     // 直接設定模板的默認顏色，然後讓 heatRules 覆蓋有數據的國家
     polygonSeries.mapPolygons.template.set("fill", am5.color(colorScheme.low));
@@ -372,7 +364,6 @@ const updateMapData = () => {
                 );
                 if (polygon) {
                     polygon.set("fill", am5.color(colorScheme.low));
-                    console.log(`設定 ${country.name} 為最淺色（無數據）`);
                 } else {
                     // 嘗試通過 ID 查找
                     const polygonById = polygonSeries.mapPolygons.getIndex(
@@ -380,24 +371,18 @@ const updateMapData = () => {
                     );
                     if (polygonById) {
                         polygonById.set("fill", am5.color(colorScheme.low));
-                        console.log(
-                            `通過 ID 設定 ${country.name} 為最淺色（無數據）`
-                        );
+                        const debugMessage = `通過 ID 設定 ${country.name} 為最淺色（無數據）`;
                     }
                 }
             }
         });
     }, 200);
 
-    console.log(
-        "地圖數據已更新:",
-        data.length,
-        "個國家",
-        "值範圍:",
-        minValue,
-        "-",
-        maxValue
-    );
+    const updateInfo = {
+        "地圖數據已更新:": data.length,
+        個國家: true,
+        "值範圍:": `${minValue} - ${maxValue}`,
+    };
 };
 
 // 獲取欄位值
@@ -423,7 +408,7 @@ const getFieldValue = (country: MapData, field: string): number => {
     // 調試信息
     if (Math.random() < 0.1) {
         // 只顯示 10% 的調試信息
-        console.log(`國家 ${country.name} 的 ${field} 值:`, value);
+        const debugInfo = `國家 ${country.name} 的 ${field} 值: ${value}`;
     }
 
     return value;
@@ -620,7 +605,6 @@ const getCountryCode = (countryName: string): string => {
     }
 
     // 如果都找不到，返回原名稱
-    console.log("未找到國家代碼:", countryName);
     return countryName;
 };
 

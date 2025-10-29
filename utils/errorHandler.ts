@@ -62,7 +62,6 @@ export class ErrorHandler {
 
     // 在開發環境中輸出錯誤
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error handled:', errorInfo)
     }
 
     return errorInfo

@@ -102,7 +102,6 @@ const createBubbleChart = async () => {
         const sizeValues = processedPoints.map((item) => item.size);
 
         if (processedPoints.length === 0) {
-            console.error("❌ BubbleChart - 沒有有效的資料點");
             return;
         }
 
@@ -202,10 +201,9 @@ const createBubbleChart = async () => {
         if (Plotly && typeof Plotly.newPlot === "function") {
             await Plotly.newPlot(chartContainer.value, data, layout, config);
         } else {
-            console.error(
-                "Plotly.newPlot 不存在，可用方法:",
-                Object.keys(Plotly || {})
-            );
+            const availableMethods = {
+                "Plotly.newPlot 不存在，可用方法:": Object.keys(Plotly || {}),
+            };
             throw new Error("Plotly.newPlot 方法不存在");
         }
 
@@ -221,7 +219,7 @@ const createBubbleChart = async () => {
         // 設定圖表尺寸
         Plotly.Plots.resize(chartContainer.value);
     } catch (error) {
-        console.error("建立氣泡圖失敗:", error);
+        // 錯誤處理
     }
 };
 

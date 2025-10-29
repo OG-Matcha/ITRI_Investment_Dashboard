@@ -88,8 +88,6 @@ const createQuadrantChart = async () => {
             am5 = am5Module.default || am5Module.am5 || am5Module;
             am5xy = am5xyModule.default || am5xyModule.am5xy || am5xyModule;
         } catch (error) {
-            console.warn("動態 import 失敗，嘗試使用 CDN:", error);
-
             // 等待 CDN 載入
             let attempts = 0;
             const maxAttempts = 50;
@@ -256,9 +254,6 @@ const createQuadrantChart = async () => {
         });
 
         // 調試 scatterSeries 對象結構
-        console.log("scatterSeries 對象結構:", scatterSeries);
-        console.log("scatterSeries.bullets:", scatterSeries.bullets);
-        console.log("scatterSeries 可用屬性:", Object.keys(scatterSeries));
 
         // 嘗試不同的方式設定點擊事件
         try {
@@ -270,15 +265,12 @@ const createQuadrantChart = async () => {
                         emit("quadrant-click", dataContext.quadrant);
                     }
                 });
-                console.log("使用 scatterSeries.events 設定點擊事件");
             }
             // 方法2: 檢查 bullets 的實際結構
             else if (scatterSeries.bullets) {
-                console.log("bullets 對象結構:", scatterSeries.bullets);
-                console.log(
-                    "bullets 可用屬性:",
-                    Object.keys(scatterSeries.bullets)
-                );
+                const bulletsInfo = {
+                    "bullets 可用屬性:": Object.keys(scatterSeries.bullets),
+                };
 
                 // 嘗試直接設定 bullets 事件
                 if (
@@ -291,16 +283,11 @@ const createQuadrantChart = async () => {
                             emit("quadrant-click", dataContext.quadrant);
                         }
                     });
-                    console.log("使用 bullets.events 設定點擊事件");
                 } else {
-                    console.warn("無法找到合適的事件設定方式");
                 }
             } else {
-                console.warn("無法設定點擊事件，跳過");
             }
-        } catch (error) {
-            console.warn("設定點擊事件時發生錯誤:", error);
-        }
+        } catch (error) {}
 
         // 設定圖表尺寸
         chart.set("width", 600);
@@ -337,9 +324,7 @@ const createQuadrantChart = async () => {
                 })
             );
         });
-    } catch (error) {
-        console.error("建立風險象限圖表失敗:", error);
-    }
+    } catch (error) {}
 };
 
 // 生命週期

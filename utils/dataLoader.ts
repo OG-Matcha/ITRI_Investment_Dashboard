@@ -27,8 +27,6 @@ export function loadCSVData(csvContent: string): EnergyStorageData[] {
     
     if (validation.isValid) {
       data.push(cleanedData)
-    } else {
-      console.warn(`資料驗證失敗: ${validation.errors.join(', ')}`, cleanedData)
     }
   }
   
@@ -102,7 +100,6 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
       url = filePath
     }
     
-    console.log('🔍 嘗試載入資料從:', url)
     
     // 使用 $fetch 來載入檔案
     const csvContent = await $fetch<string>(url)
@@ -111,7 +108,6 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
     return data
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error(`載入資料失敗 [${filePath}]:`, errorMsg)
     throw error // 重新拋出錯誤，讓上層處理
   }
 }
@@ -130,8 +126,6 @@ export async function loadDefaultData(): Promise<EnergyStorageData[]> {
       const data = await loadDataFromFile(filePath);
       return data;
     } catch (firstError) {
-      console.warn('⚠️ 從 public 目錄載入失敗，嘗試從 assets 目錄載入:', firstError);
-      
       // 嘗試從 assets 目錄載入
       filePath = '/assets/data/Energy_Storage_standardized.csv';
       const data = await loadDataFromFile(filePath);
@@ -139,8 +133,6 @@ export async function loadDefaultData(): Promise<EnergyStorageData[]> {
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('💥 預設資料載入失敗！');
-    console.error('❌ 錯誤詳情:', errorMsg);
     throw new Error(`預設資料載入失敗: ${errorMsg}`);
   }
 }

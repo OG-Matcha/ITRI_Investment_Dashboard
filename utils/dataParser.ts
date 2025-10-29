@@ -96,12 +96,10 @@ export function calculateAxisThresholds(
   
   const thresholds = predefinedThresholds[axisType]
   if (thresholds) {
-    console.log(`${axisType} 軸線使用預定義閾值:`, thresholds)
     return thresholds
   }
   
   // 如果沒有預定義閾值，回退到預設值
-  console.warn(`警告：${axisType} 軸線沒有預定義閾值，使用預設閾值`)
   return { low: 0, medium: 0, high: 0 }
 }
 

@@ -46,7 +46,6 @@ export class PerformanceMonitor {
   public endTiming(name: string): PerformanceMetrics | null {
     const metric = this.metrics.get(name)
     if (!metric) {
-      console.warn(`Performance metric "${name}" not found`)
       return null
     }
 
@@ -97,14 +96,12 @@ export class PerformanceMonitor {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            console.log('Performance entry:', entry)
           }
         })
         
         observer.observe({ entryTypes: ['measure', 'navigation', 'resource'] })
         this.observers.push(observer)
       } catch (error) {
-        console.warn('PerformanceObserver not supported:', error)
       }
     }
   }

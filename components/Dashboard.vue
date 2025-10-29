@@ -243,7 +243,6 @@ const refreshData = async () => {
         await reloadData();
         dataStatus.value = "loaded";
     } catch (error) {
-        console.error("資料載入失敗:", error);
         dataStatus.value = "error";
     }
 };
@@ -255,7 +254,6 @@ onMounted(async () => {
         await loadData();
         dataStatus.value = "loaded";
     } catch (error) {
-        console.error("資料載入失敗:", error);
         dataStatus.value = "error";
     }
 });

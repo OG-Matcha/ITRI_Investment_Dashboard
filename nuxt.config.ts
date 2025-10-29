@@ -33,6 +33,27 @@ export default defineNuxtConfig({
   app: {
     baseURL: process.env.NUXT_APP_BASE_URL || '/ITRI_Investment_Dashboard/',
     head: {
+      title: '能源儲能投資分析儀表板',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: '多維度能源儲能投資資料視覺化分析平台，提供 GE 矩陣、風險象限、公司氣泡圖和地理分析等專業投資分析工具' },
+        { name: 'keywords', content: '能源儲能, 投資分析, 資料視覺化, GE 矩陣, 風險分析, 投資儀表板' },
+        { name: 'author', content: 'ITRI' },
+        { property: 'og:title', content: '能源儲能投資分析儀表板' },
+        { property: 'og:description', content: '多維度能源儲能投資資料視覺化分析平台' },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: '能源儲能投資分析儀表板' },
+        { name: 'twitter:description', content: '多維度能源儲能投資資料視覺化分析平台' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+        { rel: 'manifest', href: '/site.webmanifest' }
+      ],
       script: [
         {
           src: 'https://cdn.amcharts.com/lib/5/index.js',

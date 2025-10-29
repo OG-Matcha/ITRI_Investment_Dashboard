@@ -32,6 +32,11 @@
                     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
                         <CompanyBubble />
                     </div>
+
+                    <!-- 地理分析圖 -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <GeoAnalysis />
+                    </div>
                 </div>
 
                 <!-- 統計摘要 -->
@@ -149,6 +154,7 @@ import { formatCurrency } from "~/utils/dataParser";
 import GEMatrix from "~/components/GE-Matrix/GEMatrix.vue";
 import RiskQuadrant from "~/components/Risk-Quadrant/RiskQuadrant.vue";
 import CompanyBubble from "~/components/Company-Bubble/CompanyBubble.vue";
+import GeoAnalysis from "~/components/Geo-Analysis/GeoAnalysis.vue";
 
 // 使用 Composables
 const { statistics } = useDataProcessing();

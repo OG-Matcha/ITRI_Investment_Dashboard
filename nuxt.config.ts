@@ -36,6 +36,14 @@ export default defineNuxtConfig({
           defer: true
         },
         {
+          src: 'https://cdn.amcharts.com/lib/5/map.js',
+          defer: true
+        },
+        {
+          src: 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js',
+          defer: true
+        },
+        {
           src: 'https://cdn.plot.ly/plotly-2.26.0.min.js',
           defer: true
         }

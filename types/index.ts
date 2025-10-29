@@ -128,7 +128,32 @@ export interface AxisOption {
 }
 
 // 圖表類型
-export type ChartType = 'ge-matrix' | 'risk-quadrant' | 'bubble-chart'
+export type ChartType = 'ge-matrix' | 'risk-quadrant' | 'bubble-chart' | 'geo-analysis'
 
 // 響應式斷點
 export type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+
+// 地理分析相關類型
+export interface CountryData {
+  name: string
+  companyCount: number
+  totalFunding: number
+  averageFunding: number
+  maxFunding: number
+  companies: EnergyStorageData[]
+  industries: Array<{ name: string; count: number }>
+  fundingRounds: Array<{ name: string; count: number }>
+}
+
+export interface GeoAnalysisResult {
+  countries: CountryData[]
+  totalCountries: number
+  totalCompanies: number
+  totalFunding: number
+  averageFunding: number
+  topCountries: Array<{ country: string; count: number; funding: number }>
+  topIndustries: Array<{ industry: string; count: number }>
+}
+
+export type DataField = 'companyCount' | 'totalFunding' | 'averageFunding' | 'maxFunding'
+export type ColorScheme = 'blues' | 'greens' | 'reds' | 'purples' | 'oranges'

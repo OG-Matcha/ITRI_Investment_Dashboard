@@ -90,7 +90,10 @@ export async function loadDataFromFile(filePath: string): Promise<EnergyStorageD
       
       // 如果 baseURL 不是 '/'，需要調整路徑
       if (appBaseURL !== '/' && !filePath.startsWith(appBaseURL)) {
-        filePath = `${appBaseURL}${filePath.startsWith('/') ? filePath.slice(1) : filePath}`
+        // 確保路徑正確拼接
+        const cleanBaseURL = appBaseURL.endsWith('/') ? appBaseURL.slice(0, -1) : appBaseURL
+        const cleanFilePath = filePath.startsWith('/') ? filePath : `/${filePath}`
+        filePath = `${cleanBaseURL}${cleanFilePath}`
       }
       
       url = `${baseUrl}${filePath}`

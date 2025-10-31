@@ -70,6 +70,11 @@
                 <div class="bg-white rounded-lg shadow-lg xl:col-span-2">
                     <CompanyBubble />
                 </div>
+
+                <!-- 產業層級分析 -->
+                <div class="bg-white rounded-lg shadow-lg xl:col-span-2">
+                    <SunburstAnalysis />
+                </div>
             </div>
 
             <!-- 統計摘要 -->
@@ -212,6 +217,7 @@ import FilterPanel from "~/components/Filter-Panel/FilterPanel.vue";
 import GEMatrix from "~/components/GE-Matrix/GEMatrix.vue";
 import RiskQuadrant from "~/components/Risk-Quadrant/RiskQuadrant.vue";
 import CompanyBubble from "~/components/Company-Bubble/CompanyBubble.vue";
+import SunburstAnalysis from "~/components/Sunburst-Analysis/SunburstAnalysis.vue";
 
 // 響應式狀態
 const dataStatus = ref<"loading" | "loaded" | "error">("loading");

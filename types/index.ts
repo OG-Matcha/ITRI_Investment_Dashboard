@@ -157,3 +157,38 @@ export interface GeoAnalysisResult {
 
 export type DataField = 'companyCount' | 'totalFunding' | 'averageFunding' | 'maxFunding'
 export type ColorScheme = 'blues' | 'greens' | 'reds' | 'purples' | 'oranges'
+
+// Sunburst 圖表相關類型
+export interface SunburstNode {
+  name: string
+  value: number
+  children?: SunburstNode[]
+  level?: number
+  parent?: string
+  color?: string
+}
+
+export interface SunburstData {
+  companyCount: SunburstNode[]
+  totalFunding: SunburstNode[]
+  averageFunding: SunburstNode[]
+}
+
+export interface SunburstAnalysisResult {
+  subIndustries: Array<{
+    name: string
+    count: number
+    totalFunding: number
+    averageFunding: number
+    productTypes: Array<{
+      name: string
+      count: number
+      totalFunding: number
+      averageFunding: number
+      companies: EnergyStorageData[]
+    }>
+  }>
+  totalCompanies: number
+  totalFunding: number
+  averageFunding: number
+}

@@ -68,6 +68,14 @@ export default defineNuxtConfig({
           defer: true
         },
         {
+          src: 'https://cdn.amcharts.com/lib/5/themes/Animated.js',
+          defer: true
+        },
+        {
+          src: 'https://cdn.amcharts.com/lib/5/hierarchy.js',
+          defer: true
+        },
+        {
           src: 'https://cdn.amcharts.com/lib/5/geodata/worldLow.js',
           defer: true
         },

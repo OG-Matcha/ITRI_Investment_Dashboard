@@ -6,12 +6,7 @@ export default defineNuxtConfig({
   // GitHub Pages 特定配置
   ssr: false,
   nitro: {
-    preset: 'github-pages',
-    routeRules: {
-      '/': { prerender: false },
-      // 禁用根目錄自動重定向，讓它返回 404
-      '/**': { prerender: false }
-    }
+    preset: 'github-pages'
   },
   
   // 環境變量配置

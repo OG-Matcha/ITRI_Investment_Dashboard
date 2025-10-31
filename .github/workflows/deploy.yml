@@ -3,132 +3,61 @@
 name: Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
+    workflow_dispatch:
+    push:
+        branches:
+            - master
 
 jobs:
-  cleanup:
-    runs-on: ubuntu-latest
-    permissions: write-all
+    cleanup:
+        runs-on: ubuntu-latest
+        permissions: write-all
 
-    steps:
-      - name: 🗑 Delete deployment
-        uses: strumwolf/delete-deployment-environment@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: github_pages
-          onlyRemoveDeployments: true
+        steps:
+            - name: 🗑 Delete deployment
+              uses: strumwolf/delete-deployment-environment@v2
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  environment: github_pages
+                  onlyRemoveDeployments: true
 
-  build:
-    needs: cleanup
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: corepack enable
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install
-      - run: npx nuxt build --preset github_pages
-        env:
-          NUXT_APP_BASE_URL: '/ITRI_Investment_Dashboard/' # 項目站點使用 '/repository-name/'
-      - name: Create .nojekyll file
-        run: |
-          touch .output/public/.nojekyll
-          ls -la .output/public/
-      - name: Create root index.html for error page
-        run: |
-          cat > .output/public/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="zh-TW">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>404 - Page Not Found</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: system-ui, -apple-system, sans-serif;
-                background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-                color: white;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-              }
-              .container {
-                text-align: center;
-                padding: 2rem;
-              }
-              h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-              }
-              p {
-                font-size: 1.25rem;
-                margin-bottom: 2rem;
-                opacity: 0.8;
-              }
-              .gif-container {
-                max-width: 800px;
-                margin: 0 auto 2rem;
-                aspect-ratio: 16/9;
-              }
-              .gif-container iframe {
-                width: 100%;
-                height: 100%;
-                border: none;
-              }
-              a {
-                display: inline-block;
-                padding: 0.75rem 1.5rem;
-                background: #2563eb;
-                color: white;
-                text-decoration: none;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                transition: background 0.2s;
-              }
-              a:hover {
-                background: #1d4ed8;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="gif-container">
-                <iframe src="https://tenor.com/embed/12643286" allowfullscreen></iframe>
-              </div>
-              <h1>這裡不是你該來的地方</h1>
-              <p>你似乎走錯了路徑...</p>
-              <a href="/ITRI_Investment_Dashboard/">返回首頁</a>
-            </div>
-          </body>
-          </html>
-          EOF
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./.output/public
+    build:
+        needs: cleanup
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: corepack enable
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+            - run: npm install
+            - run: npx nuxt build --preset github_pages
+              env:
+                  NUXT_APP_BASE_URL: "/ITRI_Investment_Dashboard/" # 項目站點使用 '/repository-name/'
+            - name: Create .nojekyll file
+              run: |
+                  touch .output/public/.nojekyll
+                  ls -la .output/public/
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: ./.output/public
 
-  # Deployment job
-  deploy:
-    # Add a dependency to the build job
-    needs: build
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-    # Deploy to the github_pages environment
-    environment:
-      name: github_pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    # Deployment job
+    deploy:
+        # Add a dependency to the build job
+        needs: build
+        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+        permissions:
+            pages: write # to deploy to Pages
+            id-token: write # to verify the deployment originates from an appropriate source
+        # Deploy to the github_pages environment
+        environment:
+            name: github_pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        # Specify runner + deployment step
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4

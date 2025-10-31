@@ -6,7 +6,12 @@ export default defineNuxtConfig({
   // GitHub Pages 特定配置
   ssr: false,
   nitro: {
-    preset: 'github-pages'
+    preset: 'github-pages',
+    routeRules: {
+      '/': { prerender: false },
+      // 禁用根目錄自動重定向，讓它返回 404
+      '/**': { prerender: false }
+    }
   },
   
   // 環境變量配置
@@ -48,11 +53,8 @@ export default defineNuxtConfig({
         { name: 'twitter:description', content: '多維度能源儲能投資資料視覺化分析平台' }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-        { rel: 'manifest', href: '/site.webmanifest' }
+        { rel: 'icon', type: 'image/x-icon', href: `${process.env.NUXT_APP_BASE_URL || '/ITRI_Investment_Dashboard/'}favicon.ico` },
+        { rel: 'manifest', href: `${process.env.NUXT_APP_BASE_URL || '/ITRI_Investment_Dashboard/'}site.webmanifest` }
       ],
       script: [
         {

@@ -34,6 +34,8 @@ let observer: IntersectionObserver | null = null;
 let currentDepth = 1;
 let isDrilling = false; // 防止快速連點導致狀態錯亂
 let lastClickTime = 0; // 記錄上次點擊時間，用於 debounce
+let formatTooltipTextFn: ((text: string, target: any) => string) | null = null; // 保存格式化函數，用於重新應用
+let applyTooltipAdapterFn: (() => void) | null = null; // 保存應用 adapter 的函數
 
 // 初始化圖表
 const initChart = async () => {
@@ -98,13 +100,14 @@ const initChart = async () => {
             })
         );
 
-        // 建立 Sunburst 圖表 - 使用官方 demo 的設定
+        // 建立 Sunburst 圖表 - 兩層結構：SubIndustry（第1層）→ ProductServiceType（第2層）
+        // 數據會被包裝成 root（第0層），但 topDepth: 1 會跳過它
         series = container.children.push(
             am5hierarchy.Sunburst.new(root, {
-                singleBranchOnly: true,
-                downDepth: 2, // 顯示第一層+第二層+第三層
-                initialDepth: 2, // 初始顯示三環
-                topDepth: 1,
+                singleBranchOnly: false, // 顯示完整圓形（所有分支）
+                downDepth: 1, // 向下顯示一層
+                initialDepth: 2, // 初始顯示到第2層（SubIndustry + ProductServiceType）
+                topDepth: 1, // 從第1層 SubIndustry 開始顯示（跳過 root 層）
                 innerRadius: am5.percent(10),
                 startAngle: 0,
                 endAngle: 360,
@@ -112,9 +115,10 @@ const initChart = async () => {
                 valueField: "value",
                 categoryField: "name",
                 childDataField: "children",
-                tooltipText: "{name}: {value}",
+                // tooltipText 由 adapter 處理，不在這裡設置
                 interactive: true,
                 cursorOverStyle: "pointer",
+                // 不使用 nodeClickBehavior，我們手動處理點擊邏輯以確保 singleBranchOnly 正確工作
             })
         );
 
@@ -139,11 +143,61 @@ const initChart = async () => {
         // 移除中心標籤，保留純圖形
 
         // 設定點擊事件 - 實作 drill-down 功能
+        // 增強 tooltip：格式化數值顯示（hover 時顯示）
         series.slices.template.setAll({
             cursorOverStyle: "pointer",
-            tooltipText: "{name}: {value}",
+            tooltipText: "{name}\n{value}", // 設置初始值，讓 adapter 可以處理
             interactive: true,
         });
+
+        // 格式化 tooltip 的函數（統一使用，避免重複）
+        formatTooltipTextFn = (text: string, target: any): string => {
+            const dataItem = target.dataItem;
+            if (!dataItem) return text || "";
+
+            const dataContext = dataItem.dataContext;
+            if (!dataContext) return text || "";
+
+            // 根據 dataField 格式化數值顯示
+            let formattedValue = "";
+            const value = dataContext.value;
+
+            if (typeof value === "number" && !isNaN(value)) {
+                if (props.dataField === "companyCount") {
+                    // 公司數量：顯示「X 家數」
+                    formattedValue = `${value.toLocaleString()} 家公司`;
+                } else if (
+                    props.dataField === "totalFunding" ||
+                    props.dataField === "averageFunding"
+                ) {
+                    // 金額：統一使用 M（百萬）作為單位，標示為美元
+                    const valueInMillions = value / 1000000;
+                    formattedValue = `$${valueInMillions.toFixed(2)} M USD`;
+                } else {
+                    formattedValue = value.toLocaleString();
+                }
+            } else {
+                formattedValue = String(value || "");
+            }
+
+            return `${dataContext.name}\n${formattedValue}`;
+        };
+
+        // 應用 tooltip adapter（只添加一次，函數內部會讀取最新的 props.dataField）
+        // 注意：adapter 函數內部會讀取 props.dataField，所以不需要重新添加
+        series.slices.template.adapters.add("tooltipText", formatTooltipTextFn);
+        if (series.nodes && series.nodes.template) {
+            series.nodes.template.adapters.add(
+                "tooltipText",
+                formatTooltipTextFn
+            );
+        }
+
+        // 應用 tooltip adapter 的函數（用於數據更新時確保 adapter 存在）
+        applyTooltipAdapterFn = () => {
+            // adapter 已經添加，不需要重新添加
+            // formatTooltipTextFn 內部會讀取最新的 props.dataField
+        };
         series.labels.template.setAll({
             cursorOverStyle: "pointer",
             interactive: true,
@@ -164,10 +218,10 @@ const initChart = async () => {
         const handleDrill = (dataItem: any) => {
             if (!dataItem) return;
             const nodeData = dataItem.dataContext;
-            const hasChildren =
+            const nodeHasChildren =
                 nodeData && nodeData.children && nodeData.children.length > 0;
 
-            if (!hasChildren) {
+            if (!nodeHasChildren) {
                 emit("node-click", nodeData);
                 return;
             }
@@ -195,35 +249,57 @@ const initChart = async () => {
             // 獲取當前選中狀態
             const currentSelected = series.get("selectedDataItem");
 
-            // 為避免重疊/重複，固定只顯示所選分支
-            series.set("singleBranchOnly", true);
-            series.set("topDepth", 1);
-            series.set("initialDepth", 2);
-            series.set("downDepth", 2);
+            // 如果點擊的是已選中的節點，取消選取以返回完整圓形
+            if (currentSelected === dataItem) {
+                try {
+                    // 已選中的節點：取消選取，返回完整圓形
+                    series.set("selectedDataItem", null);
+                    series.set("singleBranchOnly", false); // 恢復完整圓形顯示
+                    series.set("topDepth", 1); // 跳過 root 層，從第1層 SubIndustry 開始
+                    series.set("initialDepth", 2); // 顯示到第2層（ProductServiceType）
+                    series.set("downDepth", 1); // 向下顯示一層
+                } catch (e) {
+                    console.error("處理節點取消選取時發生錯誤:", e);
+                    isDrilling = false;
+                }
+            } else {
+                // 未選中的節點：先取消之前的選取，設置配置，再選取新節點
+                try {
+                    // 如果是點擊 SubIndustry（第1層，有 children），設置為只顯示該分支
+                    if (nodeHasChildren) {
+                        // 先取消之前的選取（如果有的話）
+                        if (currentSelected) {
+                            series.set("selectedDataItem", null);
+                        }
 
-            // 統一處理：無論是否已選中，都直接執行選取和縮放
-            // 對於已選中的節點，強制觸發縮放動畫
-            try {
-                // 如果點擊的是已選中的節點，直接強制縮放（不取消選擇）
-                if (currentSelected === dataItem) {
-                    // 已選中的節點：直接強制縮放，不取消選擇以避免 null 錯誤
-                    if (typeof series.zoomToDataItem === "function") {
-                        series.zoomToDataItem(dataItem);
+                        // 設置 singleBranchOnly，確保只顯示被點擊的分支
+                        series.set("singleBranchOnly", true); // 只顯示被點擊的分支
+                        series.set("topDepth", 1); // 跳過 root 層，從第1層 SubIndustry 開始
+                        series.set("initialDepth", 2); // 顯示到第2層（ProductServiceType）
+                        series.set("downDepth", 1); // 向下顯示一層
+
+                        // 等待配置生效後再選取節點
+                        setTimeout(() => {
+                            try {
+                                series.selectDataItem(dataItem);
+                                if (
+                                    typeof series.zoomToDataItem === "function"
+                                ) {
+                                    series.zoomToDataItem(dataItem);
+                                }
+                            } catch (e) {
+                                console.error("選取節點時發生錯誤:", e);
+                            }
+                        }, 50); // 增加等待時間，確保配置生效
                     } else {
-                        // 如果 zoomToDataItem 不可用，重新選取
+                        // 如果沒有 children，直接選取（雖然不應該發生，因為前面已經過濾）
                         series.selectDataItem(dataItem);
                     }
-                } else {
-                    // 未選中的節點：正常執行選取和縮放
-                    series.selectDataItem(dataItem);
-                    if (typeof series.zoomToDataItem === "function") {
-                        series.zoomToDataItem(dataItem);
-                    }
+                } catch (e) {
+                    console.error("處理節點選取時發生錯誤:", e);
+                    // 發生錯誤時解鎖，避免卡在鎖定狀態
+                    isDrilling = false;
                 }
-            } catch (e) {
-                console.error("處理節點選取時發生錯誤:", e);
-                // 發生錯誤時解鎖，避免卡在鎖定狀態
-                isDrilling = false;
             }
 
             // 在動畫完成後解鎖
@@ -249,7 +325,7 @@ const initChart = async () => {
             );
         }
 
-        // 強制顯示標籤文字（第三層數字）
+        // 設定標籤文字（只顯示名稱，不顯示數字，數字在 hover 時顯示）
         try {
             series.labels.template.setAll({
                 text: "{name}",
@@ -259,11 +335,12 @@ const initChart = async () => {
             });
         } catch {}
 
-        // 設定懸停事件
+        // 設定懸停事件 - 增強 tooltip 顯示
         series.slices.template.events.on("over", (event: any) => {
             const dataItem = event.target.dataItem;
             if (dataItem) {
                 const nodeData = dataItem.dataContext;
+                // 觸發 hover 事件，讓父組件可以顯示額外資訊
                 emit("node-hover", nodeData);
             }
         });
@@ -325,29 +402,16 @@ const initChart = async () => {
             // 獲取當前選中狀態
             const currentSelected = series.get("selectedDataItem");
 
-            // 為避免重疊/重複，固定只顯示所選分支
-            series.set("downDepth", 2);
-            series.set("initialDepth", 2);
-            series.set("topDepth", 1);
-            series.set("singleBranchOnly", true);
+            // 返回完整圓形顯示
+            series.set("downDepth", 1); // 向下顯示一層
+            series.set("initialDepth", 2); // 顯示到第2層（ProductServiceType）
+            series.set("topDepth", 1); // 跳過 root 層，從第1層 SubIndustry 開始
+            series.set("singleBranchOnly", false);
 
-            // 如果當前已選中根節點，強制觸發縮放動畫
+            // 返回完整圓形顯示（取消選取，顯示所有分支）
             try {
-                if (currentSelected === rootItem) {
-                    // 已選中的根節點：直接強制縮放，不取消選擇以避免 null 錯誤
-                    if (typeof series.zoomToDataItem === "function") {
-                        series.zoomToDataItem(rootItem);
-                    } else {
-                        // 如果 zoomToDataItem 不可用，重新選取
-                        series.selectDataItem(rootItem);
-                    }
-                } else {
-                    // 如果根節點未被選中，正常執行選取和縮放
-                    series.selectDataItem(rootItem);
-                    if (typeof series.zoomToDataItem === "function") {
-                        series.zoomToDataItem(rootItem);
-                    }
-                }
+                // 取消選取，恢復完整圓形顯示
+                series.set("selectedDataItem", null);
             } catch (e) {
                 console.error("處理回退按鈕時發生錯誤:", e);
                 // 發生錯誤時解鎖，避免卡在鎖定狀態
@@ -363,11 +427,11 @@ const initChart = async () => {
         // 初始隱藏返回按鈕
         backButton.hide();
 
-        // 監聽選取：僅控制返回按鈕顯示，不動層級設定
+        // 監聽選取：當有選取節點時顯示返回按鈕（用於返回完整圓形）
         series.events.on("dataitemselected", (ev: any) => {
             const dataItem = ev.dataItem;
-            const rootItem = series.dataItems[0];
-            if (dataItem && rootItem && dataItem !== rootItem) {
+            // 如果有選取任何節點（包括根節點），顯示返回按鈕
+            if (dataItem) {
                 backButton.show(0);
             } else {
                 backButton.hide(0);
@@ -397,36 +461,74 @@ const updateChartData = () => {
     if (!series || !props.chartData) return;
 
     try {
-        // 包裝資料為正確的格式
+        // 驗證數據格式
+        if (!Array.isArray(props.chartData) || props.chartData.length === 0) {
+            console.warn("Sunburst chartData 為空或格式不正確");
+            return;
+        }
+
+        // 調試：輸出傳入的數據（可選，用於驗證）
+        if (process.env.NODE_ENV === "development") {
+            console.log("=== Sunburst Chart 接收的數據 ===");
+            console.log("SubIndustry 節點數:", props.chartData.length);
+            const totalValue = props.chartData.reduce(
+                (sum, node) => sum + (node.value || 0),
+                0
+            );
+            console.log("總 value:", totalValue);
+        }
+
+        // 包裝成統一根節點，確保所有 SubIndustry 都能顯示
+        // 第一層（root）→ 第二層（SubIndustry）→ 第三層（ProductServiceType）
+        // 但我們設置 topDepth: 1 來跳過 root 層，只顯示 SubIndustry 和 ProductServiceType
+        // root 的 value 為所有子節點的 value 總和
+        const rootValue = props.chartData.reduce(
+            (sum, node) => sum + (node.value || 0),
+            0
+        );
         const wrappedData = {
             name: "root",
+            value: rootValue, // root 也需要有 value
             children: props.chartData,
         };
 
-        // 設定資料
+        // root value 已計算，用於確保完整圓形顯示
         series.data.setAll([wrappedData]);
 
-        // 預設選取 root，讓初始顯示完整三層
-        if (series.dataItems.length > 0) {
-            series.selectDataItem(series.dataItems[0]);
+        // 確保配置正確
+        series.set("singleBranchOnly", false);
+        series.set("topDepth", 1); // 跳過 root 層（第0層），從 SubIndustry 開始顯示（第1層）
+        series.set("initialDepth", 2); // 顯示到第2層（ProductServiceType）
+        series.set("downDepth", 1); // 向下顯示一層
+
+        // 重新應用 tooltip adapter，確保數據更新後仍然有效
+        if (applyTooltipAdapterFn) {
+            applyTooltipAdapterFn();
         }
+
+        // 初始狀態顯示完整圓形（不選取任何節點，顯示所有分支）
         series.appear(1000, 100);
     } catch (error) {
         console.error("更新圖表資料失敗:", error);
     }
 };
 
-// 重置視圖
+// 重置視圖 - 恢復完整圓形顯示
 const resetView = () => {
     if (!series) return;
 
+    // 重置為完整圓形顯示（兩層：SubIndustry → ProductServiceType）
+    series.set("singleBranchOnly", false);
+    series.set("topDepth", 1); // 跳過 root 層，從第1層 SubIndustry 開始
+    series.set("initialDepth", 2); // 顯示到第2層（ProductServiceType）
+    series.set("downDepth", 1); // 向下顯示一層
+
+    // 取消選取，顯示所有分支
+    series.set("selectedDataItem", null);
+
+    // 如果需要重新載入資料
     if (series.dataItems.length > 0) {
-        const rootItem = series.dataItems[0];
-        if (typeof series.zoomToDataItem === "function") {
-            series.zoomToDataItem(rootItem);
-        } else {
-            series.set("selectedDataItem", rootItem);
-        }
+        updateChartData();
     }
 };
 
@@ -458,6 +560,10 @@ watch(
     () => props.dataField,
     (newField) => {
         if (newField && series) {
+            // 當 dataField 改變時，需要重新應用 tooltip adapter
+            if (applyTooltipAdapterFn) {
+                applyTooltipAdapterFn();
+            }
             scheduleUpdate();
         }
     }

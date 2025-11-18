@@ -4,7 +4,7 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-2xl font-bold text-gray-800">產業層級分析</h2>
             <p class="text-sm text-gray-600 mt-1">
-                能源儲能產業 SubIndustry 與 ProductServiceType 多層次結構分析
+                能源儲能產業 SubIndustry 與 ProductServiceType 兩層結構分析（滑鼠懸停顯示數值）
             </p>
         </div>
 

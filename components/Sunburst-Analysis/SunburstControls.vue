@@ -81,7 +81,7 @@
                 <p>• 外層：SubIndustry（子產業分類）</p>
                 <p>• 內層：ProductServiceType（產品服務類型）</p>
                 <p>• 點擊節點可進行鑽取分析</p>
-                <p>• 滑鼠懸停可查看詳細數據</p>
+                <p>• 滑鼠懸停可查看數值（指標值以 hover 方式顯示）</p>
             </div>
         </div>
     </div>
